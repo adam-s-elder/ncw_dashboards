@@ -4,6 +4,8 @@
 
 # Data files
 /*.csv
+/*.xlsx
+/*.xls
 
 # Session Data files
 .RData
