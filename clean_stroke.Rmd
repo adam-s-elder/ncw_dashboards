@@ -1,0 +1,53 @@
+---
+title: "clean_stroke"
+output: html_document
+date: "2023-10-27"
+---
+NOTES: 
+- This needs to be updated if state data is added
+- Could remove excess columns but haven't
+```{r}
+library(tidyverse)
+
+folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/PLACES/"
+
+# get filenames
+files <- tibble(filename = list.files(folder))
+
+# make a list of filepaths
+filepath_list <-
+  files %>%
+  mutate(
+    filepaths = paste0(folder,filename)
+  ) %>%
+  mutate(
+    filename = NULL
+  ) 
+
+# create an empty list to store data frames
+data_list <- list()
+
+# read and store data from all files and filter data to relevant locations and indicator
+for (filepath in filepath_list$filepaths) { 
+  data <- 
+    read_csv(
+      filepath
+    ) %>%
+  filter(
+    StateAbbr == 'WA' &
+    Measure == 'Stroke among adults aged >=18 years' &
+    LocationName %in% c('Chelan','Douglas','Grant','Kittitas','Okanogan') &
+    Data_Value_Type == 'Age-adjusted prevalence'
+  )
+  data_list <- append(data_list, list(data))
+}
+
+combined_data <- bind_rows(data_list)
+
+# head(combined_data)
+
+write_csv(combined_data, "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW_Docs/NCW_Cleaned_Data/Stroke/stroke_data.csv")
+```
+
+
+

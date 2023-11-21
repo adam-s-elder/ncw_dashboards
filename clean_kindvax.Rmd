@@ -1,0 +1,116 @@
+---
+title: "clean_kindvax"
+output: html_document
+date: "2023-10-27"
+---
+NOTES:
+- This only works if complete data comes first in every county file
+```{r}
+library(tidyverse)
+library(readxl)
+
+folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/WA IIS/Kindergarten Vaccination/"
+
+# get filenames
+files <- tibble(filename = list.files(folder))
+```
+County Data
+```{r}
+# make a list of filepaths for just the county data
+county_filepath_list <-
+  files %>%
+  mutate(
+    filepaths = paste0(folder,filename)
+  ) %>%
+  mutate(
+    filename = NULL
+  ) %>%
+  filter(
+    grepl("County", filepaths)
+  )
+
+# create an empty list to store data frames
+county_data_list <- list()
+
+# read, store, filter, clean county data 
+for (filepath in county_filepath_list$filepaths) { 
+  data <- 
+     read_xlsx( 
+      filepath, skip = 3
+    ) %>%
+    select(
+      1:7,
+      -"Count...5",
+      -"Enrollment...6",
+      -Disease,
+      -Grade
+    ) %>%
+    rename(
+      Complete_Rate = "%...7",
+      Location = County,
+      Year = "School Year"
+    ) %>%
+    mutate(
+      Complete_Rate = (as.numeric(gsub("%","",Complete_Rate)))*100
+    )
+  county_data_list <- append(county_data_list, list(data))
+}
+
+county_data <- bind_rows(county_data_list)
+
+# head(county_data)
+```
+State Data
+```{r}
+# make a list of filepaths for just the state data
+state_filepath_list <-
+  files %>%
+  mutate(
+    filepaths = paste0(folder,filename)
+  ) %>%
+  mutate(
+    filename = NULL
+  ) %>%
+  filter(
+    grepl("State", filepaths)
+  )
+
+# create an empty list to store data frames
+state_data_list <- list()
+
+# read, store, filter, clean county data 
+for (filepath in state_filepath_list$filepaths) { 
+  data <- 
+     read_csv( 
+      filepath, show_col_types = FALSE 
+    ) %>%
+    mutate(
+      Location = "WA"
+    ) %>%
+    rename(
+      Year = "Year Alias",
+      Complete_Rate = Percent
+    ) %>%
+    mutate(
+      Complete_Rate = Complete_Rate*100
+    ) %>%
+    select(
+      Location,
+      Year,
+      Complete_Rate
+    )
+  state_data_list <- append(state_data_list, list(data))
+}
+
+state_data <- bind_rows(state_data_list)
+
+# head(state_data)
+```
+Combine and write
+```{r}
+combined_data <- rbind(state_data, county_data)
+
+# head(combined_data)
+
+write_csv(combined_data, "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW_Docs/NCW_Cleaned_Data/Kindergarten Vaccination/kindvax_data.csv")
+```

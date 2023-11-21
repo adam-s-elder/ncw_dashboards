@@ -1,0 +1,57 @@
+---
+title: "clean_dentists"
+output: html_document
+date: "2023-10-27"
+---
+NOTE: could remove excess columns but haven't yet
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/HRSA/Dentists/"
+
+# get filenames
+files <- tibble(filename = list.files(folder))
+
+# make a list of filepaths
+filepath_list <-
+  files %>%
+  mutate(
+    filepaths = paste0(folder,filename)
+  ) %>%
+  mutate(
+    filename = NULL
+  ) 
+
+# create an empty list to store data frames
+data_list <- list()
+
+# read and store data from all files and grab Year
+for (filepath in filepath_list$filepaths) { 
+  data <- 
+    read_xlsx(
+      filepath, skip = 3
+    ) %>%
+    mutate( # grab last 4 of the string
+      Year = substring(Source, nchar(Source) - 4 + 1, nchar(Source)) 
+    )
+  data_list <- append(data_list, list(data))
+}
+
+# clean and filter data
+combined_data <- 
+  bind_rows(data_list) %>%
+  mutate(
+    Location = ifelse(is.na(County), `State/Territory`, County)
+  ) %>%
+  filter(
+    Location %in% c("Chelan County, WA","Douglas County, WA","Grant County, WA","Kittitas County, WA", "Okanogan County, WA", "Washington")
+  ) %>%
+  mutate( # turn into YYYY-YYYY format
+    Year = paste0(Year,"-",as.integer(Year)+1) 
+  ) 
+
+write_csv(combined_data, "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW_Docs/NCW_Cleaned_Data/Dentists/dentists_data.csv")
+
+```
