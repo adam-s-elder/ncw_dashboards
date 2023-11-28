@@ -1,3 +1,6 @@
+# Data folder 
+ncw_data/*
+
 # History files
 .Rhistory
 .Rapp.history
