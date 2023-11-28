@@ -1,0 +1,55 @@
+---
+title: "clean_airqual"
+output: html_document
+date: "2023-11-28"
+---
+
+```{r}
+library(tidyverse)
+
+folder <- "./ncw_data/CDC National Environmental Public Health Tracking Network/Air Quality 24 hr/"
+```
+
+```{r}
+# get filenames
+files <- tibble(filename = list.files(folder))
+
+# make a list of filepaths
+filepath_list <-
+  files %>%
+  mutate(
+    filepaths = paste0(folder,filename)
+  ) %>%
+  mutate(
+    filename = NULL
+  ) %>%
+  filter(
+    grepl(".csv", filepaths)
+  )
+
+# create an empty list to store data frames
+data_list <- list()
+
+# read and store data from all files 
+for (filepath in filepath_list$filepaths) { 
+  data <- 
+    read_csv(
+      filepath, show_col_types = FALSE
+    ) %>%
+    select(
+      -(1:3),
+      -`...8`
+    ) %>%
+    filter(
+      County %in% c('Chelan','Douglas','Grant','Kittitas','Okanogan')
+    )
+  data_list <- append(data_list, list(data))
+}
+
+combined_data <- bind_rows(data_list)
+
+# head(combined_data)
+
+# write_csv(data, "/somewhere/airqual_data.csv")
+```
+
