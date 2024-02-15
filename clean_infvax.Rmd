@@ -3,14 +3,11 @@ title: "clean_infvax"
 output: html_document
 date: "2023-11-03"
 ---
-NOTES:
-- left excess columns
 ```{r}
 library(tidyverse)
 library(readxl)
 
-
-folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/WA IIS/Infant Vaccination/"
+folder <- "./ncw_data/raw_data/WA IIS/Infant Vaccination/"
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -28,23 +25,32 @@ filepath_list <-
 # create an empty list to store data frames
 data_list <- list()
 
-# read and store data from all files and filter data to relevant locations and indicator
+# read and store data from all files, clean and filter
 for (filepath in filepath_list$filepaths) { 
   data <- 
     read_xlsx(
       filepath, skip = 4
     ) %>%
     mutate(
-      Geography = gsub("Statewide","WA", Geography)
+      Geography = gsub("Statewide","WA", Geography),
+      Indicator = "infvax"
+    ) %>%
+    rename(
+      Location = Geography,
+      Value = Rate,
+      Year = Time
+    ) %>%
+    select(
+      Location,
+      Year,
+      Value,
+      Indicator
     )
   data_list <- append(data_list, list(data))
 }
 
 combined_data <- bind_rows(data_list)
 
-head(combined_data)
-
-# write_csv(combined_data, "/somewhere/infvax_data.csv")
-
+write_csv(combined_data, "./ncw_data/cleaned_data/infvax_data.csv")
 ```
 

@@ -3,13 +3,11 @@ title: "clean_physicians"
 output: html_document
 date: "2023-10-27"
 ---
-NOTE: could remove excess columns but haven't yet
-
 ```{r}
 library(tidyverse)
 library(readxl)
 
-folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/HRSA/Physicians/"
+folder <- "./ncw_data/raw_data/HRSA/Physicians/" 
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -34,7 +32,7 @@ for (filepath in filepath_list$filepaths) {
       filepath, skip = 3
     ) %>%
     mutate( # grab last 4 of the string
-      Year = substring(Source, nchar(Source) - 4 + 1, nchar(Source)) 
+      Year = substring(Source, nchar(Source) - 4 + 1, nchar(Source))
     )
   data_list <- append(data_list, list(data))
 }
@@ -48,10 +46,24 @@ combined_data <-
   filter(
     Location %in% c("Chelan County, WA","Douglas County, WA","Grant County, WA","Kittitas County, WA", "Okanogan County, WA", "Washington")
   ) %>%
-  mutate( # turn into YYYY-YYYY format
-    Year = paste0(Year,"-",as.integer(Year)+1) 
-  ) 
+  mutate( 
+    Year = paste0(Year,"-",as.integer(Year)+1), # turn into YYYY-YYYY format
+    Indicator = "physicians",
+    Location = str_remove(Location, " County, WA"),
+    Location = str_replace(Location, "Washington", "WA"),  
+  ) %>%
+  rename(
+    Value = `Rate (per 100,000 population)`
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
 
-write_csv(combined_data, "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW_Docs/NCW_Cleaned_Data/Physicians/physicians_data.csv")
+# head(combined_data)
+
+write_csv(combined_data, "./ncw_data/cleaned_data/physicians_data.csv")
 ```
 

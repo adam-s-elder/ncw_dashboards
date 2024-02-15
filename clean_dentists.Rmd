@@ -3,13 +3,11 @@ title: "clean_dentists"
 output: html_document
 date: "2023-10-27"
 ---
-NOTE: could remove excess columns but haven't yet
-
 ```{r}
 library(tidyverse)
 library(readxl)
 
-folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/HRSA/Dentists/"
+folder <- "./ncw_data/raw_data/HRSA/Dentists/" 
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -48,10 +46,23 @@ combined_data <-
   filter(
     Location %in% c("Chelan County, WA","Douglas County, WA","Grant County, WA","Kittitas County, WA", "Okanogan County, WA", "Washington")
   ) %>%
-  mutate( # turn into YYYY-YYYY format
-    Year = paste0(Year,"-",as.integer(Year)+1) 
-  ) 
+  mutate( 
+    Year = paste0(Year,"-",as.integer(Year)+1), # turn into YYYY-YYYY format
+    Indicator = "dentists",
+    Location = str_remove(Location, " County, WA"),
+    Location = str_replace(Location, "Washington", "WA"),  
+  ) %>%
+  rename(
+    Value = `Rate (per 100,000 population)`
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
 
-write_csv(combined_data, "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW_Docs/NCW_Cleaned_Data/Dentists/dentists_data.csv")
+head(combined_data)
 
+write_csv(combined_data, "./ncw_data/cleaned_data/dentists_data.csv")
 ```

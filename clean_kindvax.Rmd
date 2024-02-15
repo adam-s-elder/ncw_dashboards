@@ -9,7 +9,7 @@ NOTES:
 library(tidyverse)
 library(readxl)
 
-folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/WA IIS/Kindergarten Vaccination/"
+folder <- "./ncw_data/raw_data/WA IIS/Kindergarten Vaccination/"
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -46,12 +46,13 @@ for (filepath in county_filepath_list$filepaths) {
       -Grade
     ) %>%
     rename(
-      Complete_Rate = "%...7",
+      Value = "%...7",
       Location = County,
       Year = "School Year"
     ) %>%
     mutate(
-      Complete_Rate = (as.numeric(gsub("%","",Complete_Rate)))*100
+      Value = (as.numeric(gsub("%","",Value)))*100,
+      Indicator = "kindvax"
     )
   county_data_list <- append(county_data_list, list(data))
 }
@@ -89,15 +90,17 @@ for (filepath in state_filepath_list$filepaths) {
     ) %>%
     rename(
       Year = "Year Alias",
-      Complete_Rate = Percent
+      Value = Percent
     ) %>%
     mutate(
-      Complete_Rate = Complete_Rate*100
+      Value = Value*100,
+      Indicator = "kindvax"
     ) %>%
     select(
       Location,
       Year,
-      Complete_Rate
+      Value,
+      Indicator
     )
   state_data_list <- append(state_data_list, list(data))
 }
@@ -112,5 +115,5 @@ combined_data <- rbind(state_data, county_data)
 
 # head(combined_data)
 
-write_csv(combined_data, "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW_Docs/NCW_Cleaned_Data/Kindergarten Vaccination/kindvax_data.csv")
+write_csv(combined_data, "./ncw_data/cleaned_data/kindvax_data.csv")
 ```

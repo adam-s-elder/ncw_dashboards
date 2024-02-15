@@ -5,11 +5,10 @@ date: "2023-10-27"
 ---
 NOTES: 
 - This needs to be updated if state data is added
-- Could remove excess columns but haven't
 ```{r}
 library(tidyverse)
 
-folder <- "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW Epi Indicators project/data/PLACES/"
+folder <- "./ncw_data/raw_data/PLACES/"
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -27,26 +26,39 @@ filepath_list <-
 # create an empty list to store data frames
 data_list <- list()
 
-# read and store data from all files and filter data to relevant locations and indicator
+# read and store data from all files, clean and filter
 for (filepath in filepath_list$filepaths) { 
   data <- 
     read_csv(
       filepath
     ) %>%
-  filter(
-    StateAbbr == 'WA' &
-    Measure == 'Stroke among adults aged >=18 years' &
-    LocationName %in% c('Chelan','Douglas','Grant','Kittitas','Okanogan') &
-    Data_Value_Type == 'Age-adjusted prevalence'
-  )
+    filter(
+      StateAbbr == 'WA' &
+      Measure == 'Stroke among adults aged >=18 years' &
+      LocationName %in% c('Chelan','Douglas','Grant','Kittitas','Okanogan') &
+      Data_Value_Type == 'Age-adjusted prevalence'
+    ) %>%
+    rename(
+      Location = LocationName,
+      Value = Data_Value
+    ) %>%
+    mutate(
+      Indicator = "stroke"
+    ) %>%
+    select(
+      Location,
+      Year,
+      Value,
+      Indicator
+    )
   data_list <- append(data_list, list(data))
 }
 
 combined_data <- bind_rows(data_list)
 
-# head(combined_data)
+head(combined_data)
 
-write_csv(combined_data, "/Users/jordangarcia/Library/CloudStorage/OneDrive-UW/Epi/NCW_Docs/NCW_Cleaned_Data/Stroke/stroke_data.csv")
+write_csv(combined_data, "./ncw_data/cleaned_data/stroke_data.csv")
 ```
 
 
