@@ -1,0 +1,83 @@
+---
+title: "clean_hys"
+output: html_document
+date: "2024-02-15"
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+folder <- "./ncw_data/raw_data/HYS/"
+
+# get filenames
+files <- tibble(filename = list.files(folder))
+
+```
+County Data
+```{r}
+# make a list of filepaths for just the county data
+county_filepath_list <-
+  files %>%
+  mutate(
+    filepaths = paste0(folder,filename)
+  ) %>%
+  mutate(
+    filename = NULL
+  ) %>%
+  filter(
+    grepl("County", filepaths)
+  )
+
+# create an empty list to store data frames
+county_data_list <- list()
+
+# read and store data
+for (filepath in county_filepath_list$filepaths) { 
+  data <- 
+     read_xlsx( 
+      filepath, sheet = "Grade 10"
+    ) 
+  county_data_list <- append(county_data_list, list(data))
+}
+
+# clean and filter data
+county_data <- 
+  bind_rows(county_data_list) %>%
+  filter(
+    County %in% c(4, 9, 13, 19, 24) & # filter for counties
+    Variable %in% c("D20", "D14", "D90_16",	"D21_16", "D15", "D63", "H54", "H25") # filter for relevant vars
+  ) %>%
+  select(
+    County,
+    Year,
+    Variable,
+    ResponseCategoryText,
+    ResponsePercent
+  )
+
+head(county_data)
+
+head(data)
+
+# - open grade 10 tab
+# - filter on County
+# -- 4	Chelan County
+# -- 9	Douglas County
+# -- 13	Grant County
+# -- 19	Kittitas County
+# -- 24	Okanogan County
+# - Value is Response Percent
+# - filter on relevant questions
+# -- i.	D20, D14, D90_16,	D21_16, D15, D63, H54, H25
+
+# - figure out how to calc substance use
+# - outputs for all 3 indicators
+
+```
+State Data
+```{r}
+
+  
+```
+

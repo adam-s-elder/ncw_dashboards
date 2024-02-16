@@ -20,10 +20,10 @@ data <-
   ) %>%
   mutate(
     Indicator = "abuseneg",
-    Location = str_replace(Location, "All", "WA")
+    Location = gsub("All","WA", Location),
   )
 
-head(data)
+# head(data)
 
 write_csv(data, "./ncw_data/cleaned_data/abuseneg_data.csv")
 ```

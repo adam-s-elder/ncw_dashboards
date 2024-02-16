@@ -79,7 +79,7 @@ state_filepath_list <-
 # create an empty list to store data frames
 state_data_list <- list()
 
-# read, store, filter, clean county data 
+# read, store, filter, clean state data 
 for (filepath in state_filepath_list$filepaths) { 
   data <- 
      read_csv( 

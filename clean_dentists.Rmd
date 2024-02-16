@@ -49,8 +49,8 @@ combined_data <-
   mutate( 
     Year = paste0(Year,"-",as.integer(Year)+1), # turn into YYYY-YYYY format
     Indicator = "dentists",
-    Location = str_remove(Location, " County, WA"),
-    Location = str_replace(Location, "Washington", "WA"),  
+    Location = gsub(" County, WA","", Location),
+    Location = gsub("Washington", "WA", Location)
   ) %>%
   rename(
     Value = `Rate (per 100,000 population)`
