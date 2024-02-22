@@ -9,6 +9,7 @@ library(tidyverse)
 library(readxl)
 
 folder <- "./ncw_data/raw_data/HYS/"
+state_file <- "./ncw_data/raw_data/HYS/State-level HYS.xlsx"
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -20,9 +21,7 @@ County Data
 county_filepath_list <-
   files %>%
   mutate(
-    filepaths = paste0(folder,filename)
-  ) %>%
-  mutate(
+    filepaths = paste0(folder,filename),
     filename = NULL
   ) %>%
   filter(
@@ -36,7 +35,7 @@ county_data_list <- list()
 for (filepath in county_filepath_list$filepaths) { 
   data <- 
      read_xlsx( 
-      filepath, sheet = "Grade 10"
+      filepath, sheet = "Grade 10" # open the relevant sheet
     ) 
   county_data_list <- append(county_data_list, list(data))
 }
@@ -54,30 +53,108 @@ county_data <-
     Variable,
     ResponseCategoryText,
     ResponsePercent
+  ) %>%
+  rename(
+    Location = County, 
+    Value = ResponsePercent
+  ) %>%
+  mutate(
+    Location = case_when(
+      Location == 4 ~ "Chelan",
+      Location == 9 ~ "Douglas",
+      Location == 13 ~ "Grant",
+      Location == 19 ~ "Kittitas",
+      Location == 24 ~ "Okanogan",
+      TRUE ~ as.character(Location)
+    )
   )
 
-head(county_data)
-
-head(data)
-
-# - open grade 10 tab
-# - filter on County
-# -- 4	Chelan County
-# -- 9	Douglas County
-# -- 13	Grant County
-# -- 19	Kittitas County
-# -- 24	Okanogan County
-# - Value is Response Percent
-# - filter on relevant questions
-# -- i.	D20, D14, D90_16,	D21_16, D15, D63, H54, H25
-
-# - figure out how to calc substance use
-# - outputs for all 3 indicators
-
+# head(county_data)
 ```
-State Data
+Substance
 ```{r}
 
-  
+```
+Suicidal Ideation
+```{r}
+# clean state data for youth SI
+state_si <-
+  read_xlsx( 
+    state_file, sheet = "Suicide" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_si"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+# clean county data for youth SI
+county_si <-
+  county_data %>%
+  filter(
+    Variable == "H54" &
+    ResponseCategoryText == "Yes"
+  ) %>%
+  mutate(
+    Indicator = "youth_si"
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+si_data <- bind_rows(state_si, county_si)
+
+write_csv(si_data, "./ncw_data/cleaned_data/youthsi_data.csv")
+```
+Dental Care
+```{r}
+# clean state data for youth dental
+state_yd <-
+  read_xlsx( 
+    state_file, sheet = "Dental care" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_dental"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+# clean county data for youth dental
+county_yd <-
+  county_data %>%
+  filter(
+    Variable == "H25" &
+    ResponseCategoryText == "During the past 12 months"
+  ) %>%
+  mutate(
+    Indicator = "youth_dental"
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+yd_data <- bind_rows(state_yd, county_yd)
+
+write_csv(yd_data, "./ncw_data/cleaned_data/youthdent_data.csv")
 ```
 
