@@ -73,7 +73,245 @@ county_data <-
 ```
 Substance
 ```{r}
+# alcohol
+state_alc <-
+  read_xlsx( 
+    state_file, sheet = "Alcohol" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_alcohol"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
 
+county_alc <- 
+  county_data %>%
+  filter(
+    Variable == "D20" &
+    ResponseCategoryText != "None"
+  ) %>%
+  mutate(
+    Indicator = "youth_alcohol"
+  ) %>%
+  group_by(Location, Year, Indicator) %>%
+  summarise(Value = sum(Value)) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+alc_data <- bind_rows(state_alc, county_alc)
+
+write_csv(alc_data, "./ncw_data/cleaned_data/youthalc_data.csv")
+
+# cigarettes
+state_cig <-
+  read_xlsx( 
+    state_file, sheet = "Cigarettes" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_cigarettes"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+county_cig <- 
+  county_data %>%
+  filter(
+    Variable == "D14" &
+    ResponseCategoryText != "None"
+  ) %>%
+  mutate(
+    Indicator = "youth_cigarettes"
+  ) %>%
+  group_by(Location, Year, Indicator) %>%
+  summarise(Value = sum(Value)) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+cig_data <- bind_rows(state_cig, county_cig)
+
+write_csv(cig_data, "./ncw_data/cleaned_data/youthcig_data.csv")
+
+# E-cigarettes 
+state_ecig <-
+  read_xlsx( 
+    state_file, sheet = "E-cigarettes" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_e-cigarettes"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+county_ecig <- 
+  county_data %>%
+  filter(
+    Variable == "D90_16" &
+    ResponseCategoryText != "0 days"
+  ) %>%
+  mutate(
+    Indicator = "youth_e-cigarettes"
+  ) %>%
+  group_by(Location, Year, Indicator) %>%
+  summarise(Value = sum(Value)) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+ecig_data <- bind_rows(state_ecig, county_ecig)
+
+write_csv(ecig_data, "./ncw_data/cleaned_data/youthecig_data.csv")
+
+# Marijuana
+state_marijuana <-
+  read_xlsx( 
+    state_file, sheet = "Marijuana" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_marijuana"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+county_marijuana <- 
+  county_data %>%
+  filter(
+    Variable == "D21_16" &
+    ResponseCategoryText != "0 days"
+  ) %>%
+  mutate(
+    Indicator = "youth_marijuana"
+  ) %>%
+  group_by(Location, Year, Indicator) %>%
+  summarise(Value = sum(Value)) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+marijuana_data <- bind_rows(state_marijuana, county_marijuana)
+
+write_csv(marijuana_data, "./ncw_data/cleaned_data/youthmarijuana_data.csv")
+
+# other tobacco
+state_tobacco <-
+  read_xlsx( 
+    state_file, sheet = "Other tobacco" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_other_tobacco"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+county_tobacco <- 
+  county_data %>%
+  filter(
+    Variable == "D15" &
+    ResponseCategoryText != "None"
+  ) %>%
+  mutate(
+    Indicator = "youth_other_tobacco"
+  ) %>%
+  group_by(Location, Year, Indicator) %>%
+  summarise(Value = sum(Value)) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+tobacco_data <- bind_rows(state_tobacco, county_tobacco)
+
+write_csv(tobacco_data, "./ncw_data/cleaned_data/youthtobacco_data.csv")
+
+# other illegal drugs
+state_othdrugs <-
+  read_xlsx( 
+    state_file, sheet = "Other illegal drugs" # read in relevant sheet
+  ) %>%
+  mutate(
+    Indicator = "youth_other_illegal_drugs"
+  ) %>%
+  rename(
+    Value = Percent
+  ) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+county_othdrugs <- 
+  county_data %>%
+  filter(
+    Variable == "D63" &
+    ResponseCategoryText != "None"
+  ) %>%
+  mutate(
+    Indicator = "youth_other_illegal_drugs"
+  ) %>%
+  group_by(Location, Year, Indicator) %>%
+  summarise(Value = sum(Value)) %>%
+  select(
+    Location,
+    Year,
+    Value,
+    Indicator
+  )
+
+othdrugs_data <- bind_rows(state_othdrugs, county_othdrugs)
+
+write_csv(othdrugs_data, "./ncw_data/cleaned_data/youthothdrugs_data.csv")
 ```
 Suicidal Ideation
 ```{r}
