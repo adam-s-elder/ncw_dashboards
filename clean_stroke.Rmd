@@ -3,8 +3,7 @@ title: "clean_stroke"
 output: html_document
 date: "2023-10-27"
 ---
-NOTES: 
-- This needs to be updated if state data is added
+
 ```{r}
 library(tidyverse)
 
@@ -40,7 +39,9 @@ for (filepath in filepath_list$filepaths) {
     ) %>%
     rename(
       Location = LocationName,
-      Value = Data_Value
+      Value = Data_Value,
+      LowerCI = Low_Confidence_Limit,
+      UpperCI = High_Confidence_Limit
     ) %>%
     mutate(
       Indicator = "stroke"
@@ -49,14 +50,14 @@ for (filepath in filepath_list$filepaths) {
       Location,
       Year,
       Value,
+      LowerCI,
+      UpperCI,
       Indicator
     )
   data_list <- append(data_list, list(data))
 }
 
 combined_data <- bind_rows(data_list)
-
-head(combined_data)
 
 write_csv(combined_data, "./ncw_data/cleaned_data/stroke_data.csv")
 ```

@@ -32,19 +32,23 @@ for (filepath in filepath_list$filepaths) {
     read.csv(filepath) %>%
     filter(
       !is.na(Geography) & Geography != "" # filter out extra rows
-    ) %>%
+    )  %>%
     rename(
-      Location = Geography,
+      Location = Geography
     ) %>%
     mutate(
       Indicator = "mental health",
       Value = as.numeric(Proportion)*100,
+      LowerCI = as.numeric(Lower.CI)*100,
+      UpperCI = as.numeric(Upper.CI)*100,
       Location = gsub("State", "WA", Location)
     ) %>%
     select(
       Location,
       Year,
       Value,
+      LowerCI,
+      UpperCI,
       Indicator
     )
   data_list <- append(data_list, list(data))

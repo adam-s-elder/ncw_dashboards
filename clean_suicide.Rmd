@@ -37,7 +37,9 @@ for (filepath in filepath_list$filepaths) {
     ) %>%
     rename(
       Location = Geography,
-      Value = Age.Adjusted.Rate # per 100,000
+      Value = Age.Adjusted.Rate, # per 100,000
+      LowerCI = Age.Adjusted.Lower.CI,
+      UpperCI = Age.Adjusted.Upper.CI
     ) %>%
     mutate(
       Indicator = "suicide",
@@ -47,6 +49,8 @@ for (filepath in filepath_list$filepaths) {
       Location,
       Year,
       Value,
+      LowerCI,
+      UpperCI,
       Indicator
     )
   data_list <- append(data_list, list(data))
@@ -55,7 +59,6 @@ for (filepath in filepath_list$filepaths) {
 combined_data <- bind_rows(data_list)
 
 write_csv(combined_data, "./ncw_data/cleaned_data/suicide_data.csv")
-
 ```
 
 

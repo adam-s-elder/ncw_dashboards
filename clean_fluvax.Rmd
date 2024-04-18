@@ -39,12 +39,16 @@ for (filepath in filepath_list$filepaths) {
     mutate(
       Indicator = "flu vaccination",
       Value = as.numeric(Proportion)*100,
+      LowerCI = as.numeric(Lower.CI)*100,
+      UpperCI = as.numeric(Upper.CI)*100,
       Location = gsub("State", "WA", Location)
     ) %>%
     select(
       Location,
       Year,
       Value,
+      LowerCI,
+      UpperCI,
       Indicator
     )
   data_list <- append(data_list, list(data))

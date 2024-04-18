@@ -38,12 +38,16 @@ for (filepath in filepath_list$filepaths) {
     rename(
       Location = Geography,
       Value = Rate,
-      Year = Time
+      Year = Time,
+      LowerCI = LB,
+      UpperCI = UB
     ) %>%
     select(
       Location,
       Year,
       Value,
+      LowerCI,
+      UpperCI,
       Indicator
     )
   data_list <- append(data_list, list(data))

@@ -13,7 +13,6 @@ state_file <- "./ncw_data/raw_data/HYS/State-level HYS.xlsx"
 
 # get filenames
 files <- tibble(filename = list.files(folder))
-
 ```
 County Data
 ```{r}
@@ -52,7 +51,8 @@ county_data <-
     Year,
     Variable,
     ResponseCategoryText,
-    ResponsePercent
+    ResponsePercent,
+    ResponseCI
   ) %>%
   rename(
     Location = County, 
@@ -66,28 +66,34 @@ county_data <-
       Location == 19 ~ "Kittitas",
       Location == 24 ~ "Okanogan",
       TRUE ~ as.character(Location)
-    )
+    ),
+    LowerCI = Value - ResponseCI,
+    UpperCI = Value + ResponseCI
   )
 
-# head(county_data)
+head(county_data)
 ```
 Substance
 ```{r}
-# alcohol
+# alcohol *** NEED TO FIX CI****
 state_alc <-
   read_xlsx( 
     state_file, sheet = "Alcohol" # read in relevant sheet
   ) %>%
-  mutate(
-    Indicator = "youth_alcohol"
-  ) %>%
   rename(
     Value = Percent
+  ) %>%
+  mutate(
+    Indicator = "youth_alcohol",
+    UpperCI = Value + CI,
+    LowerCI = Value - CI
   ) %>%
   select(
     Location,
     Year,
     Value,
+    UpperCI,
+    LowerCI,
     Indicator
   )
 
@@ -101,7 +107,8 @@ county_alc <-
     Indicator = "youth_alcohol"
   ) %>%
   group_by(Location, Year, Indicator) %>%
-  summarise(Value = sum(Value)) %>%
+  summarise(Value = sum(Value)) %>% 
+  ungroup() %>%
   select(
     Location,
     Year,
@@ -321,7 +328,9 @@ state_si <-
     state_file, sheet = "Suicide" # read in relevant sheet
   ) %>%
   mutate(
-    Indicator = "youth_si"
+    Indicator = "youth_si",
+    LowerCI = Percent - CI,
+    UpperCI = Percent + CI
   ) %>%
   rename(
     Value = Percent
@@ -330,6 +339,8 @@ state_si <-
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -347,6 +358,8 @@ county_si <-
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -362,7 +375,9 @@ state_yd <-
     state_file, sheet = "Dental care" # read in relevant sheet
   ) %>%
   mutate(
-    Indicator = "youth_dental"
+    Indicator = "youth_dental",
+    LowerCI = Percent - CI,
+    UpperCI = Percent + CI
   ) %>%
   rename(
     Value = Percent
@@ -371,6 +386,8 @@ state_yd <-
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -388,6 +405,8 @@ county_yd <-
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
