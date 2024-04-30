@@ -1,0 +1,62 @@
+---
+title: "clean_suicide"
+output: html_document
+date: "2024-04-10"
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+folder <- "./ncw_data/raw_data/CHAT/Suicide/" 
+
+# get filenames
+files <- tibble(filename = list.files(folder))
+
+# make a list of filepaths
+filepath_list <-
+  files %>%
+  mutate(
+    filepaths = paste0(folder,filename)
+  ) %>%
+  mutate(
+    filename = NULL
+  ) 
+
+# create an empty list to store data frames
+data_list <- list()
+
+# read and store data from all files 
+for (filepath in filepath_list$filepaths) { 
+  data <- 
+    read.csv(
+      filepath, skip = 1, 
+    ) %>%
+    filter(
+      !is.na(Geography) & Geography != "" # filter out extra rows
+    ) %>%
+    rename(
+      Location = Geography,
+      Value = Age.Adjusted.Rate # per 100,000
+    ) %>%
+    mutate(
+      Indicator = "suicide",
+      Location = gsub("State Total", "WA", Location)
+    ) %>%
+    select(
+      Location,
+      Year,
+      Value,
+      Indicator
+    )
+  data_list <- append(data_list, list(data))
+}
+
+combined_data <- bind_rows(data_list)
+
+write_csv(combined_data, "./ncw_data/cleaned_data/suicide_data.csv")
+
+```
+
+
+
