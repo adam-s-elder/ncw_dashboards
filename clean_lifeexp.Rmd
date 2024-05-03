@@ -1,13 +1,14 @@
 ---
-title: "clean_stroke"
+title: "clean_lifeexp"
 output: html_document
-date: "2023-10-27"
+date: "2024-05-03"
 ---
 
 ```{r}
 library(tidyverse)
+library(readxl)
 
-folder <- "./ncw_data/raw_data/PLACES/"
+folder <- "./ncw_data/raw_data/CHAT/Life Expectancy/" 
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -25,26 +26,24 @@ filepath_list <-
 # create an empty list to store data frames
 data_list <- list()
 
-# read and store data from all files, clean and filter
+# read and store data from all files 
 for (filepath in filepath_list$filepaths) { 
   data <- 
-    read_csv(
-      filepath, show_col_types = FALSE
+    read.csv(
+      filepath, skip = 3, 
     ) %>%
     filter(
-      StateAbbr == 'WA' &
-      Measure == 'Stroke among adults aged >=18 years' &
-      LocationName %in% c('Chelan','Douglas','Grant','Kittitas','Okanogan') &
-      Data_Value_Type == 'Age-adjusted prevalence'
+      !is.na(Geography) & Geography != "" # filter out extra rows
     ) %>%
     rename(
-      Location = LocationName,
-      Value = Data_Value,
-      LowerCI = Low_Confidence_Limit,
-      UpperCI = High_Confidence_Limit
+      Location = Geography,
+      Value = Rate, # Years
+      LowerCI = Lower.CI,
+      UpperCI = Upper.CI
     ) %>%
     mutate(
-      Indicator = "stroke"
+      Indicator = "life_expectancy",
+      Location = gsub("State Total", "WA", Location)
     ) %>%
     select(
       Location,
@@ -59,8 +58,6 @@ for (filepath in filepath_list$filepaths) {
 
 combined_data <- bind_rows(data_list)
 
-write_csv(combined_data, "./ncw_data/cleaned_data/stroke_data.csv")
+write_csv(combined_data, "./ncw_data/cleaned_data/lifeexp_data.csv")
 ```
-
-
 

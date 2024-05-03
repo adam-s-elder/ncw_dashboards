@@ -33,49 +33,45 @@ county_data_list <- list()
 # read and store data
 for (filepath in county_filepath_list$filepaths) { 
   data <- 
-     read_xlsx( 
+    read_xlsx( 
       filepath, sheet = "Grade 10" # open the relevant sheet
-    ) 
+    ) %>%
+    filter(
+      County %in% c(4, 9, 13, 19, 24) & # filter for counties
+      Variable %in% c("D20", "D14", "D90_16",	"D21_16", "D15", "D63", "H54", "H25") # filter for relevant vars
+    ) %>%
+    select(
+      County,
+      Year,
+      Variable,
+      ResponseCategoryText,
+      ResponsePercent,
+      ResponseCI
+    ) %>%
+    rename(
+      Location = County, 
+      Value = ResponsePercent
+    ) %>%
+    mutate(
+      Location = case_when(
+        Location == 4 ~ "Chelan",
+        Location == 9 ~ "Douglas",
+        Location == 13 ~ "Grant",
+        Location == 19 ~ "Kittitas",
+        Location == 24 ~ "Okanogan",
+        TRUE ~ as.character(Location)
+      ),
+      LowerCI = Value - ResponseCI,
+      UpperCI = Value + ResponseCI
+    )
   county_data_list <- append(county_data_list, list(data))
 }
 
-# clean and filter data
-county_data <- 
-  bind_rows(county_data_list) %>%
-  filter(
-    County %in% c(4, 9, 13, 19, 24) & # filter for counties
-    Variable %in% c("D20", "D14", "D90_16",	"D21_16", "D15", "D63", "H54", "H25") # filter for relevant vars
-  ) %>%
-  select(
-    County,
-    Year,
-    Variable,
-    ResponseCategoryText,
-    ResponsePercent,
-    ResponseCI
-  ) %>%
-  rename(
-    Location = County, 
-    Value = ResponsePercent
-  ) %>%
-  mutate(
-    Location = case_when(
-      Location == 4 ~ "Chelan",
-      Location == 9 ~ "Douglas",
-      Location == 13 ~ "Grant",
-      Location == 19 ~ "Kittitas",
-      Location == 24 ~ "Okanogan",
-      TRUE ~ as.character(Location)
-    ),
-    LowerCI = Value - ResponseCI,
-    UpperCI = Value + ResponseCI
-  )
-
-head(county_data)
+county_data <- bind_rows(county_data_list)
 ```
 Substance
 ```{r}
-# alcohol *** NEED TO FIX CI****
+# alcohol
 state_alc <-
   read_xlsx( 
     state_file, sheet = "Alcohol" # read in relevant sheet
@@ -92,8 +88,8 @@ state_alc <-
     Location,
     Year,
     Value,
-    UpperCI,
     LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -124,17 +120,21 @@ write_csv(alc_data, "./ncw_data/cleaned_data/youthalc_data.csv")
 state_cig <-
   read_xlsx( 
     state_file, sheet = "Cigarettes" # read in relevant sheet
-  ) %>%
-  mutate(
-    Indicator = "youth_cigarettes"
-  ) %>%
+  )  %>%
   rename(
     Value = Percent
+  ) %>%
+  mutate(
+    Indicator = "youth_cigarettes",
+    UpperCI = Value + CI,
+    LowerCI = Value - CI
   ) %>%
   select(
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -165,16 +165,20 @@ state_ecig <-
   read_xlsx( 
     state_file, sheet = "E-cigarettes" # read in relevant sheet
   ) %>%
-  mutate(
-    Indicator = "youth_e-cigarettes"
-  ) %>%
   rename(
     Value = Percent
+  ) %>%
+  mutate(
+    Indicator = "youth_e-cigarettes",
+    UpperCI = Value + CI,
+    LowerCI = Value - CI
   ) %>%
   select(
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -205,16 +209,20 @@ state_marijuana <-
   read_xlsx( 
     state_file, sheet = "Marijuana" # read in relevant sheet
   ) %>%
-  mutate(
-    Indicator = "youth_marijuana"
-  ) %>%
   rename(
     Value = Percent
+  ) %>%
+  mutate(
+    Indicator = "youth_marijuana",
+    UpperCI = Value + CI,
+    LowerCI = Value - CI
   ) %>%
   select(
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -245,16 +253,20 @@ state_tobacco <-
   read_xlsx( 
     state_file, sheet = "Other tobacco" # read in relevant sheet
   ) %>%
-  mutate(
-    Indicator = "youth_other_tobacco"
-  ) %>%
   rename(
     Value = Percent
+  ) %>%
+  mutate(
+    Indicator = "youth_other_tobacco",
+    UpperCI = Value + CI,
+    LowerCI = Value - CI
   ) %>%
   select(
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -285,16 +297,20 @@ state_othdrugs <-
   read_xlsx( 
     state_file, sheet = "Other illegal drugs" # read in relevant sheet
   ) %>%
-  mutate(
-    Indicator = "youth_other_illegal_drugs"
-  ) %>%
   rename(
     Value = Percent
+  ) %>%
+  mutate(
+    Indicator = "youth_other_illegal_drugs",
+    UpperCI = Value + CI,
+    LowerCI = Value - CI
   ) %>%
   select(
     Location,
     Year,
     Value,
+    LowerCI,
+    UpperCI,
     Indicator
   )
 
@@ -414,4 +430,6 @@ yd_data <- bind_rows(state_yd, county_yd)
 
 write_csv(yd_data, "./ncw_data/cleaned_data/youthdent_data.csv")
 ```
+
+
 
