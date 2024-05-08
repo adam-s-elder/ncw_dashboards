@@ -61,6 +61,6 @@ for (filepath in filepath_list$filepaths) {
 
 combined_data <- bind_rows(data_list)
 
-write_csv(combined_data, "./ncw_data/cleaned_data/cod_data.csv")
+write_csv(combined_data, "./ncw_data/cleaned_data/hosp_data.csv")
 ```
 
