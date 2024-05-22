@@ -44,7 +44,7 @@ for (filepath in filepath_list$filepaths) {
       Location = gsub("State Total", "WA", Location)
     ) %>%
     group_by(Location, Year) %>%
-    top_n(10, Value) %>%
+    top_n(5, Value) %>% # grab top 5 causes of death for each location and year
     ungroup() %>%
     select(
       Location,
