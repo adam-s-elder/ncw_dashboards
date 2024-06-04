@@ -335,6 +335,11 @@ county_othdrugs <-
 othdrugs_data <- bind_rows(state_othdrugs, county_othdrugs)
 
 write_csv(othdrugs_data, "./ncw_data/cleaned_data/youthothdrugs_data.csv")
+
+youthallsubuse_data <- bind_rows(alc_data, cig_data, ecig_data, marijuana_data, tobacco_data, othdrugs_data)
+
+write_csv(youthallsubuse_data, "./ncw_data/cleaned_data/youthallsubuse_data.csv")
+
 ```
 Suicidal Ideation
 ```{r}
