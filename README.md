@@ -4,5 +4,5 @@ In this repository, you will find a 'documentation' folder that contains detaile
 
 The general flow of work for these dashboards is: 
 1. Download and store data for indicators of interest  
-2. Clean data for for indicators of interest 
+2. Clean data for indicators of interest 
 3. Pull and plot cleaned data into PowerBI dashboards 
