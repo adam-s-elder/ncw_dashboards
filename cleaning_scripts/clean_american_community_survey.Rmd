@@ -39,8 +39,7 @@ Read and clean the data.
 
 ```{r}
 # Reading in ACS data
-
-percent of civilian non-institutionalized individuals that have a disability
+# Percent of civilian non-institutionalized individuals that have a disability
 
 library(tidycensus)
 
