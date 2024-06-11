@@ -13,6 +13,9 @@ date: "`r Sys.Date()`"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+start_year <- 2015
+end_year <- 2022
+years_to_pull <- start_year:end_year
 ```
 
 # Package Management
@@ -146,7 +149,7 @@ pull_acs_data <- function(yr) {
   return(comb_indicators)
 }
 
-all_year_data <- map(c(2015:2022), pull_acs_data)
+all_year_data <- map(years_to_pull, pull_acs_data)
 all_year_df <- all_year_data |> do.call(what = bind_rows) |>
   mutate(Location = gsub("\\ County, Washington", "", NAME))
 state_summary <- all_year_df |> group_by(Year, Indicator) |>
