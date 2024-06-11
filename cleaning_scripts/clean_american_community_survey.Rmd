@@ -1,6 +1,13 @@
 ---
 title: "clean_acs_data"
-output: html_document
+output:
+  html_document:
+    theme: lumen
+    toc: yes
+    code_folding: hide
+    toc_depth: 2
+    toc_float: yes
+    number_sections: yes
 date: "`r Sys.Date()`"
 ---
 
@@ -29,7 +36,11 @@ Load the required libraries.
 
 
 ```{r}
+# Reading in ACS data
+# For troubleshooting, check the tidycensus documentation:
+# https://walker-data.com/tidycensus/articles/basic-usage.html
 library(tidyverse)
+library(tidycensus)
 library(here)
 ```
 
@@ -37,14 +48,9 @@ library(here)
 
 Read and clean the data.
 
-```{r}
-# Reading in ACS data
-# Percent of civilian non-institutionalized individuals that have a disability
-
-library(tidycensus)
-
-data_opts_5 <- tidycensus::load_variables(2021, dataset = "acs5")
-data_opts_1 <- tidycensus::load_variables(2021, dataset = "acs1")
+```{r, message=FALSE}
+out_column_names <- c("Location", "Year",	"Value", "Indicator")
+counties_to_pull <- c("Chelan", "Douglas", "Grant", "Kittitas", "Okanogan")
 
 # Insurance
 # There are no overall counts so summing over disaggregated counts
@@ -56,81 +62,111 @@ insurance_vars <-
     "B27010_034" = "35_64_total", "B27010_050" = "35_64_no_insurance",
     "B27010_051" = "65_plus_total", "B27010_066" = "65_plus_no_insurance")
 
-ins_tidy <- get_acs(geography = "county", variables = names(insurance_vars),
-                    state = "WA",  year = 2022)
-
-ins_tidy <- ins_tidy |>
-  left_join(data.frame(variable = names(insurance_vars),
-                       named_var = insurance_vars), by = "variable")
-ins_tidy$age_group <- str_extract_all(ins_tidy$named_var, "\\d+\\.?\\d*") |>
-  purrr::map(paste0, collapse = "-") |> do.call(what = c)
-ins_tidy$insr_group <- c("uninsured", "total")[
-  1 + as.numeric(grepl(ins_tidy$named_var, pattern = "total"))
-]
-
-uninsured <- ins_tidy |> select(NAME, estimate, age_group, insr_group) |>
-  pivot_wider(id_cols = c("NAME", "age_group"),
-              names_from = insr_group, values_from = estimate) |>
-  group_by(NAME) |> summarise(
-    "perc_uninsured" = 100 * (sum(uninsured) / sum(total)),
-    "population" = sum(total)
-  )
-
 foodstamps_vars <- c("B22010_001" = "total", "B22010_002" = "foodstamps")
 
-fs_tidy <- get_acs(geography = "county", variables = names(foodstamps_vars),
-                    state = "WA",  year = 2022) |>
-  left_join(data.frame(variable = names(foodstamps_vars),
-                       named_var = foodstamps_vars), by = "variable")
-
-foodstamps <- fs_tidy |> select(NAME, estimate, named_var) |>
-  pivot_wider(id_cols = c("NAME"),
-              names_from = named_var, values_from = estimate) |>
-  group_by(NAME) |> summarise(
-    "perc_foodstamps" = 100 * (foodstamps / total),
-    "population" = total
-  )
-
 poor_vars <- c("B16009_001" = "total", "B16009_002" = "poor")
-
-poor_tidy <- get_acs(geography = "county", variables = names(poor_vars),
-                   state = "WA",  year = 2022) |>
-  left_join(data.frame(variable = names(poor_vars),
-                       named_var = poor_vars), by = "variable")
-
-poverty_df <- poor_tidy |> select(NAME, estimate, named_var) |>
-  pivot_wider(id_cols = c("NAME"),
-              names_from = named_var, values_from = estimate) |>
-  group_by(NAME) |> summarise(
-    "perc_below_poverty_line" = 100 * (poor / total), "population" = total)
-
 
 disability_vars <-
   c("C18120_003" = "emp_lf_total", "C18120_004" = "emp_lf_w_disability",
     "C18120_006" = "unemp_lf_total", "C18120_007" = "unemp_lf_w_disability",
     "C18120_009" = "non_lf_total", "C18120_010" = "non_lf_w_disability")
 
-disab_tidy <- get_acs(geography = "county",
-                      variables = names(disability_vars),
-                      state = "WA",  year = 2022)
+pull_acs_data <- function(yr) {
+  ins_tidy <- get_acs(geography = "county", variables = names(insurance_vars),
+                      state = "WA",  year = yr)
+  ins_tidy <- ins_tidy |>
+    left_join(data.frame(variable = names(insurance_vars),
+                         named_var = insurance_vars), by = "variable")
+  ins_tidy$age_group <- str_extract_all(ins_tidy$named_var, "\\d+\\.?\\d*") |>
+    purrr::map(paste0, collapse = "-") |> do.call(what = c)
+  ins_tidy$insr_group <- c("uninsured", "total")[
+    1 + as.numeric(grepl(ins_tidy$named_var, pattern = "total"))
+  ]
+  uninsured <- ins_tidy |> select(NAME, estimate, age_group, insr_group) |>
+    pivot_wider(id_cols = c("NAME", "age_group"),
+                names_from = insr_group, values_from = estimate) |>
+    group_by(NAME) |> summarise(
+      "perc_uninsured" = 100 * (sum(uninsured) / sum(total)),
+      "population" = sum(total)
+    )
 
-disab_tidy <- disab_tidy |>
-  left_join(data.frame(variable = names(disability_vars),
-                       named_var = disability_vars), by = "variable")
-disab_tidy$empl_status <-
-  str_replace(disab_tidy$named_var, "_w_disability|_total", "")
-disab_tidy$disab_status <-
-  str_replace(disab_tidy$named_var,
-              paste0(unique(disab_tidy$empl_status),
-                     collapse = "|"), "") |> str_replace("_", "")
+  fs_tidy <- get_acs(geography = "county", variables = names(foodstamps_vars),
+                     state = "WA",  year = yr) |>
+    left_join(data.frame(variable = names(foodstamps_vars),
+                         named_var = foodstamps_vars), by = "variable")
+  foodstamps <- fs_tidy |> select(NAME, estimate, named_var) |>
+    pivot_wider(id_cols = c("NAME"),
+                names_from = named_var, values_from = estimate) |>
+    group_by(NAME) |> summarise(
+      "perc_foodstamps" = 100 * (foodstamps / total),
+      "population" = total
+    )
 
-disability <- disab_tidy |> select(NAME, estimate, empl_status, disab_status) |>
-  pivot_wider(id_cols = c("NAME", "empl_status"),
-              names_from = disab_status, values_from = estimate) |>
-  group_by(NAME) |> summarise(
-    "perc_w_disability" = 100 * (sum(w_disability) / sum(total)),
-    "population" = sum(total)
-  )
+  poor_tidy <- get_acs(geography = "county", variables = names(poor_vars),
+                       state = "WA",  year = yr) |>
+    left_join(data.frame(variable = names(poor_vars),
+                         named_var = poor_vars), by = "variable")
+  poverty_df <- poor_tidy |> select(NAME, estimate, named_var) |>
+    pivot_wider(id_cols = c("NAME"),
+                names_from = named_var, values_from = estimate) |>
+    group_by(NAME) |> summarise(
+      "perc_below_poverty_line" = 100 * (poor / total), "population" = total)
+
+  disab_tidy <- get_acs(geography = "county",
+                        variables = names(disability_vars),
+                        state = "WA",  year = yr)
+  disab_tidy <- disab_tidy |>
+    left_join(data.frame(variable = names(disability_vars),
+                         named_var = disability_vars), by = "variable")
+  disab_tidy$empl_status <-
+    str_replace(disab_tidy$named_var, "_w_disability|_total", "")
+  disab_tidy$disab_status <-
+    str_replace(disab_tidy$named_var,
+                paste0(unique(disab_tidy$empl_status),
+                       collapse = "|"), "") |> str_replace("_", "")
+
+  disability <- disab_tidy |>
+    select(NAME, estimate, empl_status, disab_status) |>
+    pivot_wider(id_cols = c("NAME", "empl_status"),
+                names_from = disab_status, values_from = estimate) |>
+    group_by(NAME) |> summarise(
+      "perc_w_disability" = 100 * (sum(w_disability) / sum(total)),
+      "population" = sum(total)
+    )
+  comb_indicators <- bind_rows(
+    poverty_df |> rename(Value = perc_below_poverty_line) |>
+      mutate(Indicator = "perc_living_poverty"),
+    uninsured |> rename(Value = perc_uninsured) |>
+      mutate(Indicator = "perc_uninsured"),
+    foodstamps |> rename(Value = perc_foodstamps) |>
+      mutate(Indicator = "perc_assistance"),
+    disability |> rename(Value = perc_w_disability) |>
+      mutate(Indicator = "perc_living_disability"),
+  ) |> mutate(Year = yr)
+  return(comb_indicators)
+}
+
+all_year_data <- map(c(2015:2022), pull_acs_data)
+all_year_df <- all_year_data |> do.call(what = bind_rows) |>
+  mutate(Location = gsub("\\ County, Washington", "", NAME))
+state_summary <- all_year_df |> group_by(Year, Indicator) |>
+  summarise(Value = sum(Value * population) / sum(population)) |>
+  mutate(Location = "Washington")
+ncw_summary <- all_year_df |> filter(Location %in% counties_to_pull) |>
+  group_by(Year, Indicator) |>
+  summarise(Value = sum(Value * population) / sum(population)) |>
+  mutate(Location = "NCW counties")
+all_data <- bind_rows(
+  state_summary, ncw_summary,
+  all_year_df |> filter(Location %in% counties_to_pull) |>
+    select(Year, Indicator, Value, Location)) |>
+  arrange(Year, Indicator)
+```
+
+## Checking data:
+
+```{r}
+head(all_data) |> knitr::kable()
 ```
 
 # Write Clean Data
@@ -138,8 +174,6 @@ disability <- disab_tidy |> select(NAME, estimate, empl_status, disab_status) |>
 Write the cleaned data csv file.
 
 ```{r}
-#TODO: ADAM Add code to combine across all counties for state level estimates 
-# and also create an NCW level estimate.
-
+write_csv(all_data, "acs_data.csv")
 ```
 
