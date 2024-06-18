@@ -3,11 +3,35 @@ title: "clean_dentists"
 output: html_document
 date: "2023-10-27"
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Package Management
+Ensure all required packages are installed 
+```{r}
+required_packages <- c("here", "tidyverse", "readxl")
+
+install_if_missing <- function(package) {
+  if (!requireNamespace(package, quietly = TRUE)) {
+    install.packages(package)
+  }
+}
+
+lapply(required_packages, install_if_missing)
+```
+# Load Libraries
+Load the required libraries. 
 ```{r}
 library(tidyverse)
+library(here)
 library(readxl)
+```
+# File Paths
+Define paths to relevant files.
+```{r}
+folder <- here("ncw_data", "raw_data", "HRSA", "Dentists")
 
-folder <- "./ncw_data/raw_data/HRSA/Dentists/" 
+cleaned_data_file <- here("ncw_data", "cleaned_data", "dentists_data.csv")
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -16,13 +40,15 @@ files <- tibble(filename = list.files(folder))
 filepath_list <-
   files %>%
   mutate(
-    filepaths = paste0(folder,filename)
+    filepaths = paste0(folder, "/", filename)
   ) %>%
   mutate(
     filename = NULL
   ) 
-
-# create an empty list to store data frames
+```
+# Cleaning
+Read and clean the data.
+```{r}
 data_list <- list()
 
 # read and store data from all files and grab Year
@@ -61,8 +87,10 @@ combined_data <-
     Value,
     Indicator
   )
-
-head(combined_data)
-
-write_csv(combined_data, "./ncw_data/cleaned_data/dentists_data.csv")
 ```
+# Write Clean Data
+Write the cleaned data csv file.
+```{r}
+write_csv(combined_data, cleaned_data_file)
+```
+

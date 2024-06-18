@@ -3,12 +3,34 @@ title: "clean_fluvax"
 output: html_document
 date: "2024-04-11"
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Package Management
+Ensure all required packages are installed 
+```{r}
+required_packages <- c("here", "tidyverse")
 
+install_if_missing <- function(package) {
+  if (!requireNamespace(package, quietly = TRUE)) {
+    install.packages(package)
+  }
+}
+
+lapply(required_packages, install_if_missing)
+```
+# Load Libraries
+Load the required libraries. 
 ```{r}
 library(tidyverse)
-library(readxl)
+library(here)
+```
+# File Paths
+Define paths to relevant files.
+```{r}
+folder <- here("ncw_data", "raw_data", "CHAT", "Flu Vaccination")
 
-folder <- "./ncw_data/raw_data/CHAT/Flu Vaccination/"
+cleaned_data_file <- here("ncw_data", "cleaned_data", "fluvax_data.csv")
 
 # get filenames
 files <- tibble(filename = list.files(folder))
@@ -17,13 +39,15 @@ files <- tibble(filename = list.files(folder))
 filepath_list <-
   files %>%
   mutate(
-    filepaths = paste0(folder,filename)
+    filepaths = paste0(folder, "/", filename)
   ) %>%
   mutate(
     filename = NULL
   ) 
-
-# create an empty list to store data frames
+```
+# Cleaning
+Read and clean the data.
+```{r}
 data_list <- list()
 
 # read and store data from all files 
@@ -55,7 +79,10 @@ for (filepath in filepath_list$filepaths) {
 }
 
 combined_data <- bind_rows(data_list)
-
-write_csv(combined_data, "./ncw_data/cleaned_data/fluvax_data.csv")
+```
+# Write Clean Data
+Write the cleaned data csv file.
+```{r}
+write_csv(combined_data, cleaned_data_file)
 ```
 
