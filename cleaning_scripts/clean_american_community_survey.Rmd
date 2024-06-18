@@ -46,10 +46,21 @@ library(tidyverse)
 library(tidycensus)
 library(here)
 ```
+# Set API Key
+To run tidycensus, you will need an API key issued by the census department. The website where the API key can be requested is here: https://api.census.gov/data/key_signup.html. Here is a link with more information on how to get a key and install it: https://search.r-project.org/CRAN/refmans/tidycensus/html/census_api_key.html. 
+
+This only needs to be done once. After you run this chunk the first time or if you have already set the key in the past, comment out the code in this chunk. 
+```{r}
+census_api_key("YOUR API KEY", overwrite=TRUE, install=TRUE) # replace "YOUR API KEY" with the key you get in the email after requesting it
+readRenviron("~/.Renviron")
+```
 
 # Define Filepaths
 ```{r}
-cleaned_data_file <- here("ncw_data", "cleaned_data", "acs_data.csv")
+perc_assistance_file <- here("ncw_data", "cleaned_data", "snap_data.csv")
+perc_living_disability_file <- here("ncw_data", "cleaned_data", "disability_data.csv")
+perc_living_poverty_file <- here("ncw_data", "cleaned_data", "poverty_data.csv")
+perc_uninsured_file <- here("ncw_data", "cleaned_data", "insurance_data.csv")
 ```
 
 # Cleaning
@@ -159,11 +170,11 @@ all_year_df <- all_year_data |> do.call(what = bind_rows) |>
   mutate(Location = gsub("\\ County, Washington", "", NAME))
 state_summary <- all_year_df |> group_by(Year, Indicator) |>
   summarise(Value = sum(Value * population) / sum(population)) |>
-  mutate(Location = "Washington")
+  mutate(Location = "WA")
 ncw_summary <- all_year_df |> filter(Location %in% counties_to_pull) |>
   group_by(Year, Indicator) |>
   summarise(Value = sum(Value * population) / sum(population)) |>
-  mutate(Location = "NCW counties")
+  mutate(Location = "NCW")
 all_data <- bind_rows(
   state_summary, ncw_summary,
   all_year_df |> filter(Location %in% counties_to_pull) |>
@@ -182,6 +193,9 @@ head(all_data) |> knitr::kable()
 Write the cleaned data csv file.
 
 ```{r}
-write_csv(all_data, cleaned_data_file)
+write_csv(all_data %>% filter(Indicator == "perc_assistance"), perc_assistance_file)
+write_csv(all_data %>% filter(Indicator == "perc_living_disability"), perc_living_disability_file)
+write_csv(all_data %>% filter(Indicator == "perc_living_poverty"), perc_living_poverty_file)
+write_csv(all_data %>% filter(Indicator == "perc_uninsured"), perc_uninsured_file)
 ```
 
