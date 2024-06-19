@@ -46,13 +46,15 @@ library(tidyverse)
 library(tidycensus)
 library(here)
 ```
+
 # Set API Key
+
 To run tidycensus, you will need an API key issued by the census department. The website where the API key can be requested is here: https://api.census.gov/data/key_signup.html. Here is a link with more information on how to get a key and install it: https://search.r-project.org/CRAN/refmans/tidycensus/html/census_api_key.html. 
 
-This only needs to be done once. After you run this chunk the first time or if you have already set the key in the past, comment out the code in this chunk. 
+This only needs to be done once (uncomment the code before running).
 ```{r}
-census_api_key("YOUR API KEY", overwrite=TRUE, install=TRUE) # replace "YOUR API KEY" with the key you get in the email after requesting it
-readRenviron("~/.Renviron")
+# census_api_key("YOUR API KEY", install=TRUE) # replace "YOUR API KEY" with the key you get in the email after requesting it
+# readRenviron("~/.Renviron")
 ```
 
 # Define Filepaths
@@ -60,7 +62,7 @@ readRenviron("~/.Renviron")
 perc_assistance_file <- here("ncw_data", "cleaned_data", "snap_data.csv")
 perc_living_disability_file <- here("ncw_data", "cleaned_data", "disability_data.csv")
 perc_living_poverty_file <- here("ncw_data", "cleaned_data", "poverty_data.csv")
-perc_uninsured_file <- here("ncw_data", "cleaned_data", "insurance_data.csv")
+perc_insured_file <- here("ncw_data", "cleaned_data", "insurance_data.csv")
 ```
 
 # Cleaning
@@ -105,7 +107,7 @@ pull_acs_data <- function(yr) {
     pivot_wider(id_cols = c("NAME", "age_group"),
                 names_from = insr_group, values_from = estimate) |>
     group_by(NAME) |> summarise(
-      "perc_uninsured" = 100 * (sum(uninsured) / sum(total)),
+      "perc_insured" = 100 * (1 - (sum(uninsured) / sum(total))),
       "population" = sum(total)
     )
 
@@ -155,8 +157,8 @@ pull_acs_data <- function(yr) {
   comb_indicators <- bind_rows(
     poverty_df |> rename(Value = perc_below_poverty_line) |>
       mutate(Indicator = "perc_living_poverty"),
-    uninsured |> rename(Value = perc_uninsured) |>
-      mutate(Indicator = "perc_uninsured"),
+    uninsured |> rename(Value = perc_insured) |>
+      mutate(Indicator = "perc_insured"),
     foodstamps |> rename(Value = perc_foodstamps) |>
       mutate(Indicator = "perc_assistance"),
     disability |> rename(Value = perc_w_disability) |>
@@ -196,6 +198,6 @@ Write the cleaned data csv file.
 write_csv(all_data %>% filter(Indicator == "perc_assistance"), perc_assistance_file)
 write_csv(all_data %>% filter(Indicator == "perc_living_disability"), perc_living_disability_file)
 write_csv(all_data %>% filter(Indicator == "perc_living_poverty"), perc_living_poverty_file)
-write_csv(all_data %>% filter(Indicator == "perc_uninsured"), perc_uninsured_file)
+write_csv(all_data %>% filter(Indicator == "perc_insured"), perc_insured_file)
 ```
 
