@@ -45,6 +45,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("gridExtra")
 #install.packages("janitor")
 #install.packages("censusapi")
+#install.packages("here")
 
 library(dplyr)
 library(tidyverse)
@@ -58,6 +59,7 @@ library(grid)
 library(gridExtra)
 library(janitor)
 library(censusapi)
+library(here)
 
 # Set API (https://api.census.gov/data/key_signup.html) 
 census_api_key(key = "UPDATE NEEDED - SET YOUR CENSUS API KEY HERE", overwrite=TRUE, install=TRUE)
@@ -80,9 +82,8 @@ years <- c(2018, 2019, 2020, 2021, 2022)
 
 # Set homelessness data name and pull it into your environment
 # UPDATE NEEDED: change the CSV name if it has been updated 
-homelessness_data <- read.csv("homelessness_data.csv")
-
-
+homelessness_data_file <- here("ncw_data", "cleaned_data", "homelessness_data.csv")
+homelessness_data <- read.csv(homelessness_data_file)
 
 ```
 
@@ -217,9 +218,8 @@ homelessness_data_popest <- homelessness_data_popest %>%
 
 
 # Save the data in CSV format
-write.csv(homelessness_data_popest, "homelessness_data_popest.csv", row.names = FALSE)
-
-
+cleaned_data_file <- here("ncw_data", "cleaned_data", "homelessness_data_popest.csv")
+write_csv(homelessness_data_popest, cleaned_data_file)
 ```
 
 
