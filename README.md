@@ -10,12 +10,12 @@ It should be noted that data are not stored in the github repository to avoid da
 
 ## Adding data 
 
-Once the folders have been added as described above, you must place the data sent to you in the "raw_data" folder.  If you do not have not been sent this data talk to the colaborator you are working with to have them send you the data.
+Once the folders have been added as described above, you must place the data sent to you in the "raw_data" folder. If you have not been sent this data, talk to the collaborator you are working with to have them send you the data.
 
-# Cleaning data
+## Cleaning data
 
-Once you have created the data folders and placed the required data in the folders, it is now possible to clean the data.  The scripts used to clean the data are stored within the "cleaning_scripts" folder.  If you encounter issues when attempting to clean the data, either contact your colaborator or open an issue on the github page.
+Once you have created the data folders and placed the required data in the folders, it is now possible to clean the data. The scripts used to clean the data are stored within the "cleaning_scripts" folder. If you encounter issues when attempting to clean the data, either contact your collaborator or open an issue on the github page.
 
-# Creating PowerBI dashboards
+## Creating PowerBI dashboards
 
 After the clean datasets have been created, data can be read into and displayed by powerBI.
